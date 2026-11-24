@@ -1,0 +1,28 @@
+/* 各動画に付ける追加ボタン（YouTube のテーマ変数に合わせる。html の font-size は 10px） */
+.ytvo-alt-button {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 4px 0 2px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-family: "Roboto", "Arial", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.8rem;
+  white-space: nowrap;
+  text-decoration: none;
+  color: var(--yt-spec-text-primary, #0f0f0f);
+  background: var(--yt-spec-badge-chip-background, rgba(0, 0, 0, 0.05));
+  cursor: pointer;
+  user-select: none;
+}
+
+.ytvo-alt-button:hover {
+  background: var(--yt-spec-10-percent-layer, rgba(0, 0, 0, 0.1));
+}
+
+.ytvo-alt-button:focus-visible {
+  outline: 2px solid var(--yt-spec-call-to-action, #065fd4);
+  outline-offset: 1px;
+}

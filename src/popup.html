@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>YouTube Video Only</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>YouTube Video Only</h1>
+
+    <label class="switch-row">
+      <span>
+        <span class="switch-title">動画だけで開く</span>
+        <span class="switch-sub">再生リストの動画をクリックしたとき</span>
+      </span>
+      <input id="toggle" type="checkbox" role="switch" />
+      <span class="switch" aria-hidden="true"></span>
+    </label>
+
+    <table>
+      <tbody>
+        <tr>
+          <th>通常クリック</th>
+          <td id="link-mode">—</td>
+        </tr>
+        <tr>
+          <th>追加ボタン</th>
+          <td id="button-mode">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="note">中クリック・Ctrl+クリックでも同じURLが新しいタブで開きます。</p>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
