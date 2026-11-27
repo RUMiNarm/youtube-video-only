@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Video Only for YouTube",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "再生リスト（後で見るなど）の動画を、プレイリストを読み込まない動画だけのページで開けるようにします。",
   "permissions": ["storage"],
   "content_scripts": [

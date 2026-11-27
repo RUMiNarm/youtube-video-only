@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Video Only for YouTube",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "再生リスト（後で見るなど）の動画を、プレイリストを読み込まない動画だけのページで開けるようにします。",
   "permissions": ["storage"],
   "content_scripts": [
@@ -30,6 +30,7 @@
     "gecko": {
       "id": "youtube-video-only@local",
       "strict_min_version": "140.0",
+      "update_url": "https://github.com/RUMiNarm/youtube-video-only/releases/latest/download/updates.json",
       "data_collection_permissions": {
         "required": ["none"]
       }

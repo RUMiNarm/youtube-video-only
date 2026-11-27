@@ -18,7 +18,16 @@ YouTube の再生リスト（特に「後で見る」）から動画を開くと
   - `/feed/...`（「あなた」ページなど）にある「後で見る」(WL)・「高く評価した動画」(LL) の動画
   - 「すべて再生」ボタン、再生リストのカード、ミックス（`RD...`）、動画ページ内の再生リストパネルは対象外
 
-## ビルド
+## インストール
+
+[Releases](https://github.com/RUMiNarm/youtube-video-only/releases/latest) からダウンロードする。
+
+- **Firefox**: `video-only-for-youtube-<version>.xpi` を Firefox で開く（または `about:addons` の歯車 →「ファイルからアドオンをインストール」）。以降は自動で更新される。
+- **Chrome / Edge / Brave など**: `video-only-for-youtube-<version>-chrome.zip` を展開し、`chrome://extensions` →「デベロッパーモード」をオン →「パッケージ化されていない拡張機能を読み込む」で展開したフォルダを選ぶ（自動更新はされない）。
+
+拡張機能の管理画面で、www.youtube.com へのアクセスが許可されていることを確認する。
+
+## 開発
 
 ```sh
 ./build.sh
@@ -26,11 +35,23 @@ YouTube の再生リスト（特に「後で見る」）から動画を開くと
 
 `dist/chrome/`・`dist/firefox/` と、それぞれの zip ができる。アイコンの PNG は `rsvg-convert` があれば `src/icons/icon.svg` から生成する。
 
-## インストール（開発版）
+- Chrome: `chrome://extensions` で `dist/chrome` を読み込む
+- Firefox: `about:debugging#/runtime/this-firefox` →「一時的なアドオンを読み込む」で `dist/firefox/manifest.json` を選ぶ（再起動すると外れる）
 
-- **Chrome / Edge / Brave など**: `chrome://extensions` →「デベロッパーモード」をオン →「パッケージ化されていない拡張機能を読み込む」で `dist/chrome` を選ぶ
-- **Firefox**: `about:debugging#/runtime/this-firefox` →「一時的なアドオンを読み込む」で `dist/firefox/manifest.json` を選ぶ（Firefox を再起動すると外れる。ずっと使うなら AMO で署名した `dist/firefox.zip` を入れる）
-  - 拡張機能の管理画面で、www.youtube.com へのアクセスが許可されていることを確認する
+## リリース
+
+`manifests/chrome.json` と `manifests/firefox.json` の `version` を上げて `main` に push すると、GitHub Actions（`.github/workflows/release.yml`）が次を行う。`version` を上げていない push では何もしない。
+
+1. ビルド
+2. `web-ext sign --channel unlisted` で AMO に署名してもらう
+3. GitHub Release `v<version>` を作り、署名済み `.xpi`・Chrome 用 zip・`updates.json` を添付する
+
+Firefox は manifest の `update_url`（最新 Release の `updates.json`）を定期的に確認し、新しいバージョンがあれば自動で更新する。
+
+必要な Secrets（[AMO の API キー](https://addons.mozilla.org/developers/addon/api/key/)）:
+
+- `AMO_JWT_ISSUER`
+- `AMO_JWT_SECRET`
 
 ## 構成
 
@@ -42,8 +63,9 @@ src/
   icons/
 manifests/
   chrome.json   Chrome 用 manifest
-  firefox.json  Firefox 用 manifest（gecko id・data_collection_permissions を含む）
+  firefox.json  Firefox 用 manifest（gecko id・update_url などを含む）
 build.sh
+.github/workflows/release.yml   リリース用ワークフロー
 ```
 
 ## 実装メモ

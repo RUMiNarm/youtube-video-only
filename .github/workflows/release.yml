@@ -1,0 +1,114 @@
+# manifest の version を上げて main に push すると、
+# Firefox 版を AMO で署名（unlisted）して GitHub Release を作る。
+# Release に置いた updates.json を Firefox が見に行き、自動更新される。
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "manifests/**"
+      - "src/**"
+      - "build.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read version
+        id: version
+        run: |
+          ff=$(jq -r .version manifests/firefox.json)
+          cr=$(jq -r .version manifests/chrome.json)
+          if [[ "$ff" != "$cr" ]]; then
+            echo "::error::manifests/firefox.json ($ff) と manifests/chrome.json ($cr) の version が一致していません"
+            exit 1
+          fi
+          echo "version=$ff" >> "$GITHUB_OUTPUT"
+          echo "addon_id=$(jq -r .browser_specific_settings.gecko.id manifests/firefox.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if already released
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "v${{ steps.version.outputs.version }} はリリース済みなのでスキップします"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check AMO secrets
+        if: steps.check.outputs.skip == 'false'
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [[ -z "$AMO_JWT_ISSUER" || -z "$AMO_JWT_SECRET" ]]; then
+            echo "::error::リポジトリの Secrets に AMO_JWT_ISSUER と AMO_JWT_SECRET を登録してください"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v7
+        if: steps.check.outputs.skip == 'false'
+        with:
+          node-version: lts/*
+
+      - name: Build
+        if: steps.check.outputs.skip == 'false'
+        run: ./build.sh
+
+      - name: Sign Firefox add-on (unlisted)
+        if: steps.check.outputs.skip == 'false'
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          npx --yes web-ext@10 sign \
+            --source-dir dist/firefox \
+            --artifacts-dir web-ext-artifacts \
+            --channel unlisted \
+            --approval-timeout 1800000
+
+      - name: Prepare release assets
+        if: steps.check.outputs.skip == 'false'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ADDON_ID: ${{ steps.version.outputs.addon_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p release
+          xpi="video-only-for-youtube-${VERSION}.xpi"
+          mv web-ext-artifacts/*.xpi "release/${xpi}"
+          cp dist/chrome.zip "release/video-only-for-youtube-${VERSION}-chrome.zip"
+          hash="sha256:$(sha256sum "release/${xpi}" | cut -d' ' -f1)"
+          jq -n \
+            --arg id "$ADDON_ID" \
+            --arg version "$VERSION" \
+            --arg link "https://github.com/${REPO}/releases/download/v${VERSION}/${xpi}" \
+            --arg hash "$hash" \
+            '{addons: {($id): {updates: [{version: $version, update_link: $link, update_hash: $hash}]}}}' \
+            > release/updates.json
+          cat release/updates.json
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v${VERSION}" release/* \
+            --target "${{ github.sha }}" \
+            --title "v${VERSION}" \
+            --generate-notes
