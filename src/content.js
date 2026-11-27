@@ -1,5 +1,5 @@
 /*
- * YouTube Video Only - content script
+ * Video Only for YouTube - content script
  *
  * 再生リスト（後で見る など）の動画リンクを「動画だけ」のURLで開けるようにする。
  *

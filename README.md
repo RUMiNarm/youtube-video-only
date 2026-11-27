@@ -1,4 +1,4 @@
-# YouTube Video Only
+# Video Only for YouTube
 
 YouTube の再生リスト（特に「後で見る」）から動画を開くと、プレイリストごと読み込まれて重くなる。
 この拡張機能を使うと、プレイリストを読み込まない動画だけのページで開ける。Chrome と Firefox の両方で使える（Manifest V3）。

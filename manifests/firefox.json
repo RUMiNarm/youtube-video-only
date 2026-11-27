@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Video Only",
-  "version": "1.0.0",
+  "name": "Video Only for YouTube",
+  "version": "1.0.1",
   "description": "再生リスト（後で見るなど）の動画を、プレイリストを読み込まない動画だけのページで開けるようにします。",
   "permissions": ["storage"],
   "content_scripts": [
@@ -13,7 +13,7 @@
     }
   ],
   "action": {
-    "default_title": "YouTube Video Only",
+    "default_title": "Video Only for YouTube",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
@@ -33,6 +33,9 @@
       "data_collection_permissions": {
         "required": ["none"]
       }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
     }
   }
 }
